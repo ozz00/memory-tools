@@ -20,7 +20,7 @@
 │   └── utils/            # fsrs / sm2 / importer / scheduler / store / cardShards / rich
 ├── src/                  # 🧪 旧 React H5 原型（不参与发布）
 ├── scripts/              # 🧪 回归与真机验证脚本
-├── docs/                 # 方案评估 / 发布清单 / 推广文案
+├── docs/                 # 方案评估 / 推广文案（发布清单不入库）
 ├── public/
 ├── index.html            # H5 原型入口
 ├── package.json          # H5 原型的依赖与脚本
@@ -70,5 +70,5 @@ bash scripts/run_all.sh                    # 批量
 ## 说明
 
 - 本仓库为项目源码备份。
-- **不入库**：`project.private.config.json`（微信开发者工具本机私有配置）、`.workbuddy/`（AI 编程助手工作笔记）、`node_modules/`、`.env*`（保留 `.env.example`）。
+- **不入库**：`project.private.config.json`（微信开发者工具本机私有配置）、`.workbuddy/`（AI 编程助手工作笔记）、`docs/发布清单.md`（内部运营文档）、`node_modules/`、`.env*`（保留 `.env.example`）。
 - `project.config.json` 中的 AppID 为本项目原 AppID，第三方使用请改为自己的 AppID 或使用测试号。
