@@ -1,0 +1,101 @@
+<view class="page {{dark?'dark':''}} {{tab==='txt'?'has-fixed-action':''}}">
+
+  <view class="tabs">
+    <view class="tab {{tab==='txt'?'on':''}}" data-tab="txt" bindtap="switchTab">卡片导入</view>
+    <view class="tab {{tab==='manage'?'on':''}}" data-tab="manage" bindtap="switchTab">卡片导出</view>
+  </view>
+
+  <!-- ============ Anki TXT 直连导入 ============ -->
+  <block wx:if="{{tab === 'txt'}}">
+    <view class="txt-flex">
+      <view class="card-box panel">
+        <button class="btn btn-upload" bindtap="pickTxt" style="margin-bottom:4rpx;">⬆️ 导入</button>
+<view style="font-size:22rpx;color:#059669;line-height:1.6;margin-bottom:16rpx;font-weight:700;">
+        步骤：点"导入"按钮 → 微信会打开「从聊天中选择」→ 找到「文件传输助手」→ 选中 .txt 文件 → 确定 → 跳回小程序 → 确认导入。（仅支持 Anki 导出的 txt/csv 格式）
+      </view>
+
+        <textarea
+          class="main-area"
+          value="{{rawText}}"
+          bindinput="onTextInput"
+          maxlength="-1"
+          placeholder="每行一张卡：正面[TAB]背面&#10;可含 HTML 字段；行尾可加空格分隔的标签列&#10;（示例：六西格玛的 DMAIC 是什么？[TAB]Define-Measure-Analyze-Improve-Control&#10;[TAB]DMAIC 黑带核心）&#10;&#10;粘贴多张卡片请直接全量粘贴，已解除长度限制"
+        />
+
+        <view wx:if="{{parseResult}}" class="parse-summary">
+          <text class="ps-icon">{{parseResult.success?'✅':'❌'}}</text>
+          <view style="flex:1;">
+            <view style="font-size:28rpx;font-weight:800;">{{parseResult.message}}</view>
+            <view wx:if="{{parseResult.totalParsed > 0}}" style="font-size:22rpx;color:var(--sub);margin-top:4rpx;">识别阶段：DMAIC / 精益 / DFSS（自动）</view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <!-- 底部固定操作栏：确认导入（仅 txt tab 显示） -->
+  <view wx:if="{{tab === 'txt'}}" class="action-bar-fixed">
+    <!-- 刻意不用 disabled 属性：按钮处于 disabled 状态时不会派发 bindtap，
+         用户点上去会「毫无反应」、误以为按钮坏了。改为始终可点，
+         并在 handler（confirmImport）里给出可操作的原因提示。 -->
+    <button class="btn btn-primary action-btn {{(!parseResult || !parseResult.success) ? 'is-disabled' : ''}}" bindtap="confirmImport">确认导入</button>
+  </view>
+
+  <!-- ============ 卡片导出 ============ -->
+  <block wx:if="{{tab === 'manage'}}">
+    <view class="card-box panel">
+      <view style="font-size:28rpx;font-weight:800;margin-bottom:8rpx;">📤 导出牌组</view>
+      <view style="font-size:24rpx;color:var(--sub);line-height:1.6;margin-bottom:20rpx;">两种格式按需选：JSON 备份完整保留学习进度和图片；Anki TXT 不包含图片和学习进度，用于与 Anki 互通。</view>
+      <view style="display:flex;gap:16rpx;">
+        <button class="btn btn-primary" style="flex:1;" bindtap="exportJson">导出 JSON 备份</button>
+        <button class="btn btn-ghost" style="flex:1;" bindtap="exportAnkiTxt">导出 TXT 备份</button>
+      </view>
+    </view>
+
+    <view class="card-box panel">
+      <view style="font-size:28rpx;font-weight:800;margin-bottom:8rpx;">📥 恢复 JSON 备份</view>
+      <view style="font-size:24rpx;color:var(--sub);line-height:1.6;margin-bottom:16rpx;">粘贴之前导出的 JSON 备份即可恢复牌组。</view>
+      <textarea
+        value="{{rawText}}"
+        bindinput="onTextInput"
+        maxlength="-1"
+        placeholder='粘贴 JSON 数组，或 { cards: [...] } 对象（此前「导出全部牌组」的产物）'
+        style="width:100%;min-height:200rpx;background:var(--soft);border:2rpx solid var(--border);border-radius:16rpx;padding:20rpx;font-size:24rpx;line-height:1.6;box-sizing:border-box;color:var(--text);"
+      />
+      <button class="btn btn-primary" style="margin-top:16rpx;" bindtap="parseJsonNow" loading="{{isProcessing}}">解析并预览</button>
+    </view>
+
+    <view wx:if="{{parseResult && tab==='manage'}}" class="card-box panel">
+      <view style="display:flex;align-items:center;gap:8rpx;margin-bottom:12rpx;">
+        <text style="font-size:32rpx;">{{parseResult.success?'✅':'❌'}}</text>
+        <view style="font-size:28rpx;font-weight:800;">{{parseResult.message}}</view>
+      </view>
+      <view wx:for="{{parseResult.preview}}" wx:key="*this" class="preview-row">
+        <text style="font-size:24rpx;font-weight:700;padding:2rpx 10rpx;background:var(--soft);border-radius:6rpx;color:var(--sub);">{{item.stage}}</text>
+        <text style="font-size:24rpx;flex:1;line-height:1.5;">{{item.front}}</text>
+        <text style="font-size:22rpx;font-weight:700;flex-shrink:0;{{item.ansWarn ? 'color:#b91c1c;' : 'color:#059669;'}}">{{item.ansLabel || item.typeLabel}}</text>
+      </view>
+      <view wx:if="{{parseResult.success && parseResult.totalParsed > 0}}" style="display:grid;grid-template-columns:1fr 1fr;gap:14rpx;margin-top:20rpx;">
+        <button class="btn btn-ghost" bindtap="parseJsonNow">重新解析</button>
+        <button class="btn btn-primary" bindtap="confirmImport">确认恢复</button>
+      </view>
+    </view>
+
+    <view class="card-box panel">
+      <view style="font-size:28rpx;font-weight:800;margin-bottom:8rpx;">🏷️ 牌组名称管理</view>
+      <view style="font-size:24rpx;color:var(--sub);line-height:1.6;margin-bottom:16rpx;">点任意牌组可重命名（整批卡片一起改）。导入时若名称被写坏，在这里改回正常名字即可。</view>
+      <view wx:for="{{deckList}}" wx:key="name" class="preview-row" data-name="{{item.name}}" bindtap="onRenameDeck" style="cursor:pointer;">
+        <text style="font-size:24rpx;flex:1;line-height:1.5;word-break:break-all;">{{item.name}}</text>
+        <text style="font-size:22rpx;color:var(--muted);flex-shrink:0;">{{item.count}} 张</text>
+        <text style="font-size:22rpx;color:var(--brand);flex-shrink:0;">改名 ›</text>
+      </view>
+      <view wx:if="{{deckList.length === 0}}" style="font-size:24rpx;color:var(--muted);">牌组为空。</view>
+    </view>
+
+    <view class="card-box panel" style="border-color:#fecaca;">
+      <view style="font-size:28rpx;font-weight:800;margin-bottom:8rpx;color:#b91c1c;">⚠️ 清空牌组</view>
+      <view style="font-size:24rpx;color:var(--sub);line-height:1.6;margin-bottom:20rpx;">将清空全部卡片（不含错题本、收藏与统计）。清空后可重新导入 Anki TXT。</view>
+      <button class="btn" style="background:#b91c1c;color:#fff;" bindtap="resetDefault">清空牌组</button>
+    </view>
+  </block>
+</view>

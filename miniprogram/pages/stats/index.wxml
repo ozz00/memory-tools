@@ -1,0 +1,137 @@
+<view class="page tab-page {{dark?'dark':''}}">
+  <view class="card-box banner">
+    <view style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12rpx;">
+      <view style="display:flex;align-items:center;gap:12rpx;">
+        <view style="width:64rpx;height:64rpx;background:rgba(255,255,255,0.2);border-radius:16rpx;display:flex;align-items:center;justify-content:center;font-size:40rpx;">🔥</view>
+        <view>
+          <view style="font-size:26rpx;">连续记忆打卡</view>
+          <view style="font-size:30rpx;font-weight:800;">{{streak}} 天连续复习</view>
+        </view>
+      </view>
+    </view>
+    <view style="font-size:26rpx;opacity:0.95;line-height:1.7;">
+      <view><text style="font-weight:800;">艾宾浩斯遗忘曲线</text> × <text style="font-weight:800;">Anki SM-2 算法</text>，<text style="font-weight:800;">铸就长期记忆</text></view>
+    </view>
+  </view>
+
+  <view class="three-cards">
+    <view class="card-box stat">
+      <view class="st-lab">待学新卡</view>
+      <view class="st-val st-new">{{newCount}}</view>
+    </view>
+    <view class="card-box stat">
+      <view class="st-lab">复习巩固</view>
+      <view class="st-val st-learn">{{learning}}</view>
+    </view>
+    <view class="card-box stat">
+      <view class="st-lab">熟练掌握</view>
+      <view class="st-val st-master">{{mastered}}</view>
+    </view>
+  </view>
+
+  <!-- 今日学习记录：学习时长 / 记忆保留率 / 卡片错误率 + 近 7 天趋势 -->
+  <view class="card-box panel">
+    <view style="display:flex;align-items:center;gap:8rpx;margin-bottom:16rpx;">
+      <text style="font-size:30rpx;">⏱️</text>
+      <text style="font-size:30rpx;font-weight:800;">今日学习记录</text>
+      <text wx:if="{{todayRated || todaySec}}" style="font-size:24rpx;color:var(--muted);margin-left:auto;">已答 {{todayRated}} 张</text>
+    </view>
+
+    <view wx:if="{{!todayRated && !todaySec}}" class="today-empty">
+      今天还没有学习记录 —— 去「首页」点开一个牌组开始复习吧。
+    </view>
+
+    <block wx:else>
+      <view class="today-grid">
+        <view class="tg-item">
+          <view class="tg-val" style="color:var(--brand);">{{todayMinText}}</view>
+          <view class="tg-lab">学习时长</view>
+        </view>
+        <view class="tg-item">
+          <view class="tg-val {{todayKeepRate < 0 ? 'na' : (todayKeepRate >= 80 ? 'ok' : (todayKeepRate >= 60 ? 'mid' : 'bad'))}}">{{todayKeepText}}</view>
+          <view class="tg-lab">记忆保留率</view>
+        </view>
+        <view class="tg-item">
+          <view class="tg-val {{todayErrRate < 0 ? 'na' : (todayErrRate <= 20 ? 'ok' : (todayErrRate <= 40 ? 'mid' : 'bad'))}}">{{todayErrText}}</view>
+          <view class="tg-lab">卡片错误率</view>
+        </view>
+      </view>
+
+      <view style="font-size:24rpx;color:var(--muted);text-align:left;line-height:1.6;">
+        <view>保留率 = 评分「良好/简单」占比</view>
+        <view>错误率 = 评分「重来/困难」占比</view>
+      </view>
+
+      <view class="week-block" wx:if="{{week.length}}">
+        <view wx:for="{{week}}" wx:key="key" class="week-row {{item.isToday ? 'today' : ''}}">
+          <text class="week-date">{{item.label}}<text wx:if="{{item.isToday}}" style="color:var(--brand);font-weight:800;"> 今</text></text>
+          <view class="week-bar">
+            <view class="week-fill" style="width:{{item.barW}}%;"></view>
+          </view>
+          <text class="week-val">{{item.minText}}</text>
+          <text class="week-keep {{item.keepRate < 0 ? 'na' : (item.keepRate >= 80 ? 'ok' : (item.keepRate >= 60 ? 'mid' : 'bad'))}}">{{item.keepText}}</text>
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <view class="two-entries">
+    <view class="card-box entry" bindtap="goWrong" style="border-color:#fecaca;">
+      <view style="display:flex;align-items:center;gap:12rpx;">
+        <view style="width:56rpx;height:56rpx;border-radius:14rpx;background:#fee2e2;color:#b91c1c;display:flex;align-items:center;justify-content:center;font-size:32rpx;">⚠️</view>
+        <view>
+          <view style="font-size:30rpx;font-weight:700;">易错题本</view>
+          <view style="font-size:26rpx;color:var(--sub);">{{wrongCount}} 张待强化</view>
+        </view>
+      </view>
+      <text style="color:var(--muted);">›</text>
+    </view>
+    <view class="card-box entry" bindtap="goFav" style="border-color:#fde68a;">
+      <view style="display:flex;align-items:center;gap:12rpx;">
+        <view style="width:56rpx;height:56rpx;border-radius:14rpx;background:#fef3c7;color:#b45309;display:flex;align-items:center;justify-content:center;font-size:32rpx;">★</view>
+        <view>
+          <view style="font-size:30rpx;font-weight:700;">我的收藏</view>
+          <view style="font-size:26rpx;color:var(--sub);">{{favCount}} 张核心卡</view>
+        </view>
+      </view>
+      <text style="color:var(--muted);">›</text>
+    </view>
+  </view>
+
+  <view class="card-box panel">
+    <view style="display:flex;align-items:center;gap:8rpx;margin-bottom:20rpx;">
+      <text style="font-size:30rpx;">📈</text>
+      <text style="font-size:30rpx;font-weight:800;">学习进度</text>
+    </view>
+    <view wx:for="{{deckStats}}" wx:key="name" style="padding:16rpx 0;border-bottom:2rpx solid var(--border);">
+      <view style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8rpx;">
+        <text style="font-size:28rpx;font-weight:700;">{{item.name}}</text>
+        <text style="font-size:26rpx;color:var(--sub);font-family:monospace;">共 {{item.total}} 张</text>
+      </view>
+      <view style="display:flex;flex-wrap:wrap;gap:12rpx;">
+        <text class="chip" style="font-size:24rpx;padding:4rpx 16rpx;margin:0;">新卡 {{item.newCount}}</text>
+        <text class="chip" style="font-size:24rpx;padding:4rpx 16rpx;margin:0;">学习中 {{item.learningCount}}</text>
+        <text class="chip" style="font-size:24rpx;padding:4rpx 16rpx;margin:0;">复习中 {{item.reviewCount}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="card-box panel">
+    <view style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20rpx;">
+      <view style="display:flex;align-items:center;gap:8rpx;">
+        <text style="font-size:30rpx;">📊</text>
+        <text style="font-size:30rpx;font-weight:800;">资料库掌握度</text>
+      </view>
+      <text style="font-size:28rpx;font-weight:800;color:var(--brand);">综合 {{masteredRate}}%</text>
+    </view>
+    <view wx:for="{{deckStats}}" wx:key="name" class="stage-row">
+      <view style="display:flex;justify-content:space-between;font-size:26rpx;margin-bottom:6rpx;">
+        <text style="font-weight:600;">{{item.name}}（{{item.total}}卡）</text>
+        <text style="font-family:monospace;font-weight:700;color:var(--sub);">{{item.rate}}%</text>
+      </view>
+      <view style="height:12rpx;background:var(--soft);border-radius:6rpx;overflow:hidden;">
+        <view style="width:{{item.rate}}%;height:100%;background:var(--brand);"></view>
+      </view>
+    </view>
+  </view>
+</view>

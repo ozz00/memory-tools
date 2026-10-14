@@ -1,0 +1,166 @@
+/* 全局主题变量与通用排版
+   注意：不要加 -webkit-font-smoothing: antialiased，
+   在浅色背景上它会让笔画变细发虚，反而更糊。 */
+page {
+  --bg: #f4f6f9;
+  --card: #ffffff;
+  --text: #051c2c;
+  --sub: #48566b;        /* 原 #5b6779，加深以提升对比度 */
+  --muted: #6b7789;      /* 原 #8a94a6，原值过浅导致小字发虚 */
+  --border: #e2e8f0;
+  --brand: #00629b;
+  --brand-deep: #051c2c;
+  --soft: #f1f5f9;
+  --ok: #059669;
+  --warn: #d97706;
+  --bad: #dc2626;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", Helvetica, sans-serif;
+  font-size: 28rpx;
+  -webkit-text-size-adjust: 100%;   /* 防止 iOS 自动放大破坏排版 */
+  text-rendering: optimizeLegibility;
+  /* 自定义底部导航条占位（与 custom-tab-bar/index.wxss 保持一致） */
+  --tb-h: 76rpx;
+  --tb: calc(76rpx + env(safe-area-inset-bottom));
+}
+
+.page {
+  min-height: 100vh;
+  box-sizing: border-box;
+  background: var(--bg);
+  color: var(--text);
+  /* 顶部预留 2rpx 覆盖开发者工具中 navigationBar 与 webview 渲染区之间的
+     "占位条带"（开发者工具特有，真机不存在）。该占位条带默认渲染为浅色，
+     在暗黑模式下与页面深色背景形成"白条"。page background 在此覆盖一条
+     等高色带即可视觉无缝，2rpx 不影响任何布局。 */
+  padding-top: 2rpx;
+  padding-bottom: 40rpx;
+}
+
+/* 底部带自定义 tabBar 的页面：预留导航条高度，避免内容被遮挡 */
+.page.tab-page {
+  padding-bottom: calc(40rpx + var(--tb));
+}
+
+.page.study.tab-page {
+  padding-bottom: 0;
+}
+
+.page.dark {
+  --bg: #0b132b;
+  --card: #142242;
+  --text: #f1f5f9;
+  --sub: #adbccd;        /* 原 #94a3b8，提亮 */
+  --muted: #8b9ab0;      /* 原 #64748b，过暗导致暗色模式下看不清 */
+  --border: #1e3a5f;
+  --brand: #38bdf8;
+  --brand-deep: #0f1d40;
+  --soft: #16264a;
+  --ok: #34d399;
+  --warn: #fbbf24;
+  --bad: #f87171;
+}
+
+/* 卡片容器 */
+.card-box {
+  background: var(--card);
+  border: 2rpx solid var(--border);
+  border-radius: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(5, 28, 44, 0.05);
+}
+
+.section-title {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: var(--sub);
+  letter-spacing: 2rpx;
+  padding: 24rpx 28rpx 12rpx;
+}
+
+/* 标签（阶段/题型/关键词等，卡片与题目内仍在使用） */
+.chip {
+  display: inline-block;
+  padding: 10rpx 22rpx;
+  margin-right: 12rpx;
+  border-radius: 999rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+  background: var(--soft);
+  color: var(--text);
+  border: 2rpx solid var(--border);
+}
+
+.chip.on {
+  background: var(--brand);
+  color: #ffffff;
+  border-color: var(--brand);
+}
+
+/* 按钮 */
+.btn {
+  border-radius: 20rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  text-align: center;
+  padding: 20rpx 24rpx;
+  /* 防止按钮文字被容器宽度挤换行（white-space），过长时允许文字溢出而不是省略号截断 */
+  white-space: nowrap;
+  word-break: keep-all;
+}
+
+.btn-primary {
+  background: var(--brand-deep);
+  color: #ffffff;
+}
+
+.page.dark .btn-primary {
+  background: var(--brand);
+  color: #06152b;
+}
+
+.btn-ghost {
+  background: var(--soft);
+  color: var(--text);
+  border: 2rpx solid var(--border);
+}
+
+.btn:active {
+  opacity: 0.85;
+}
+
+/* 富文本渲染 */
+.rich {
+  font-size: 28rpx;
+  line-height: 1.75;
+  color: var(--text);
+  word-break: break-word;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx 48rpx;
+  text-align: center;
+}
+
+.empty-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  margin: 24rpx 0 12rpx;
+}
+
+.empty-desc {
+  font-size: 26rpx;
+  color: var(--sub);
+  line-height: 1.7;
+  margin-bottom: 40rpx;
+}
+
+.divider {
+  height: 2rpx;
+  background: var(--border);
+  margin: 0 28rpx;
+}

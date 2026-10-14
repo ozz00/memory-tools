@@ -1,0 +1,305 @@
+<view class="page tab-page {{dark?'dark':''}}">
+  <view class="section-title">使用说明</view>
+  <view class="card-box list">
+    <view class="row clickable" data-key="guide" bindtap="openModal">
+      <view style="display:flex;align-items:center;gap:12rpx;">
+        <text style="font-size:34rpx;">❓</text>
+        <view>
+          <view style="font-size:28rpx;font-weight:600;">使用说明</view>
+          <view style="font-size:24rpx;color:var(--sub);">按今日任务推进,考前过完首轮</view>
+        </view>
+      </view>
+      <text style="color:var(--muted);">›</text>
+    </view>
+  </view>
+
+  <view class="section-title">卡片导入/导出</view>
+  <view class="card-box list">
+    <view class="row clickable" bindtap="openAdminEntry">
+      <view style="display:flex;align-items:center;gap:12rpx;">
+        <text style="font-size:34rpx;">🛠️</text>
+        <view>
+          <view style="font-size:28rpx;font-weight:600;">卡片导入/导出</view>
+          <view style="font-size:24rpx;color:var(--sub);">导入 Anki TXT / CSV 牌组 · 导出 JSON 备份</view>
+        </view>
+      </view>
+      <text style="color:var(--muted);">›</text>
+    </view>
+  </view>
+
+  <view class="section-title">复习偏好</view>
+  <view class="card-box list">
+    <view class="row clickable" bindtap="openQuotaModal">
+      <view style="display:flex;align-items:center;gap:12rpx;">
+        <text style="font-size:34rpx;">🎯</text>
+        <view>
+          <view style="font-size:28rpx;font-weight:600;">每日任务配额</view>
+          <view style="font-size:24rpx;color:var(--sub);">新卡 {{newPerDay}} 张 · 到期复习 {{reviewPerDay > 0 ? reviewPerDay + ' 张' : '不限'}}</view>
+        </view>
+      </view>
+      <text style="color:var(--muted);">›</text>
+    </view>
+    <view class="row">
+      <picker mode="date" value="{{examDate || todayStr}}" start="{{todayStr}}" bindchange="onExamDateChange" style="flex:1;min-width:0;">
+        <view style="display:flex;align-items:center;gap:12rpx;">
+          <text style="font-size:34rpx;">📅</text>
+          <view>
+            <view style="font-size:28rpx;font-weight:600;">考试日期</view>
+            <view style="font-size:24rpx;color:var(--sub);">{{examDate ? examDate + ' · 还剩 ' + examDays + ' 天' : '未设置（设置后可反推每日新卡量）'}}</view>
+          </view>
+        </view>
+      </picker>
+      <view wx:if="{{examDate}}" catchtap="clearExamDate" style="font-size:24rpx;color:var(--muted);padding:12rpx;flex-shrink:0;">清除</view>
+      <text wx:else style="color:var(--muted);">›</text>
+    </view>
+    <view wx:if="{{examPlan && !examPlan.enough}}" class="row" style="background:rgba(239,68,68,0.12);">
+      <view style="font-size:23rpx;line-height:1.65;color:#f87171;">
+        ⚠️ 待学新卡 {{examPlan.newLeft}} 张，按每天 {{examPlan.configured}} 张需 {{examPlan.firstRoundDays}} 天（可用 {{examPlan.days}} 天），过不完首轮；建议提到 {{examPlan.needPerDay}} 张/天。
+      </view>
+    </view>
+    <view class="row clickable" bindtap="openCountModal">
+      <view style="display:flex;align-items:center;gap:12rpx;">
+        <text style="font-size:34rpx;">🔢</text>
+        <view>
+          <view style="font-size:28rpx;font-weight:600;">单批卡片数</view>
+          <view style="font-size:24rpx;color:var(--sub);">每批连续做 {{studyCount}} 张，做完可继续下一批</view>
+        </view>
+      </view>
+      <text style="color:var(--muted);">›</text>
+    </view>
+    <view class="row">
+      <picker mode="selector" range="{{intervalLabels}}" value="{{intervalIndex}}" bindchange="onIntervalChange" style="flex:1;min-width:0;">
+        <view style="display:flex;align-items:center;gap:12rpx;">
+          <text style="font-size:34rpx;">⏳</text>
+          <view>
+            <view style="font-size:28rpx;font-weight:600;">间隔上限</view>
+            <view style="font-size:24rpx;color:var(--sub);">每张卡最多 {{maxIntervalDays}} 天不被复习 · 越短考前覆盖越全、复习量略增</view>
+          </view>
+        </view>
+      </picker>
+      <text style="color:var(--muted);">›</text>
+    </view>
+  </view>
+
+  <view class="section-title">方法论与核心引擎</view>
+  <view class="card-box list">
+    <view class="row clickable" data-key="sm2" bindtap="openModal">
+      <view style="display:flex;align-items:center;gap:12rpx;">
+        <text style="font-size:34rpx;">🧠</text>
+        <view>
+          <view style="font-size:28rpx;font-weight:600;">SM-2 记忆算法机制</view>
+          <view style="font-size:24rpx;color:var(--sub);">重来 / 困难 / 良好 / 简单 指数级间隔</view>
+        </view>
+      </view>
+      <text style="color:var(--muted);">›</text>
+    </view>
+    <view class="row clickable" data-key="ebbinghaus" bindtap="openModal">
+      <view style="display:flex;align-items:center;gap:12rpx;">
+        <text style="font-size:34rpx;">📉</text>
+        <view>
+          <view style="font-size:28rpx;font-weight:600;">艾宾浩斯遗忘曲线</view>
+          <view style="font-size:24rpx;color:var(--sub);">基于遗忘曲线与 SM-2 设计 · 完美对抗遗忘</view>
+        </view>
+      </view>
+      <text style="color:var(--muted);">›</text>
+    </view>
+  </view>
+
+  <view class="section-title">视觉与交互偏好</view>
+  <view class="card-box list">
+    <view class="row">
+      <view style="display:flex;align-items:center;gap:12rpx;">
+        <text style="font-size:34rpx;">{{dark?'🌙':'☀️'}}</text>
+        <view>
+          <view style="font-size:28rpx;font-weight:600;">暗黑模式</view>
+          <view style="font-size:24rpx;color:var(--sub);">{{dark?'已开启深蓝夜间护眼模式':'麦肯锡商务沉稳浅色模式'}}</view>
+        </view>
+      </view>
+      <switch checked="{{dark}}" bindchange="toggleDark" color="#00629B" />
+    </view>
+  </view>
+
+  <view class="section-title">关于</view>
+  <view class="card-box list">
+    <view class="row clickable" data-key="about" bindtap="openModal">
+      <view style="display:flex;align-items:center;gap:12rpx;">
+        <text style="font-size:34rpx;">ℹ️</text>
+        <view>
+          <view style="font-size:28rpx;font-weight:600;">关于本工具</view>
+          <view style="font-size:24rpx;color:var(--sub);">版本 {{appVersion}} · 数据说明与联系方式</view>
+        </view>
+      </view>
+      <text style="color:var(--muted);">›</text>
+    </view>
+  </view>
+
+  <!-- 底部占位（避免最后一栏贴底） -->
+  <view style="height:60rpx;"></view>
+
+  <!-- 模态层：卡片自身即滚动容器（见 index.wxss 中 .modal-card 注释）。
+       scroll-into-view 是布局回归脚本的测试钩子（scripts/verify_modal_layout.cjs
+       用它验证长文弹窗确实可滚动），页面自身不设置 scrollAnchor，值为空即不滚动。 -->
+  <view wx:if="{{activeSubModal}}" class="modal-mask" bindtap="closeModal" catchtouchmove="true">
+    <scroll-view scroll-y scroll-into-view="{{scrollAnchor}}" class="modal-card card-box {{activeSubModal === 'guide' || activeSubModal === 'about' ? '' : 'card-tall'}}" catchtap="noop">
+      <view wx:if="{{activeSubModal === 'sm2'}}">
+        <view class="modal-title">🧠 SM-2 记忆算法机制</view>
+        <view class="modal-sub">SuperMemo-2 · 四档评分 / 通过判定 / 指数级复习间隔</view>
+        <view class="modal-body">
+          <!-- 四档评分：2×2 网格，单行紧凑格（● 档名 分数）；文字用各档深色，暗黑模式主题下仍可读 -->
+          <view style="display:flex;flex-direction:column;gap:12rpx;">
+            <view style="display:flex;gap:12rpx;">
+              <view class="rating-cell" style="background:#fef2f2;border-color:#fecaca;color:#7f1d1d;"><text style="color:#dc2626;">●</text><text>重来 1 分</text></view>
+              <view class="rating-cell" style="background:#fffbeb;border-color:#fde68a;color:#78350f;"><text style="color:#d97706;">●</text><text>困难 2 分</text></view>
+            </view>
+            <view style="display:flex;gap:12rpx;">
+              <view class="rating-cell" style="background:#eff6ff;border-color:#bfdbfe;color:#1e3a8a;"><text style="color:#00629B;">●</text><text>良好 3 分</text></view>
+              <view class="rating-cell" style="background:#ecfdf5;border-color:#a7f3d0;color:#064e3b;"><text style="color:#059669;">●</text><text>简单 4 分</text></view>
+            </view>
+          </view>
+
+          <view style="height:24rpx;"></view>
+
+          <!-- 通过判定：本轮完成规则（良好/简单才放行，重来/困难回炉重做） -->
+          <view style="font-size:28rpx;font-weight:800;margin-bottom:12rpx;">✅ 通过判定 · 本轮完成规则</view>
+          <view style="padding:20rpx;background:rgba(16,185,129,0.07);border:2rpx solid #a7f3d0;border-radius:16rpx;font-size:26rpx;line-height:1.8;color:var(--text);">
+            <view style="font-weight:800;margin-bottom:6rpx;">评分只分「过」与「不过」两类：</view>
+            <view>🟢 <text style="font-weight:800;">良好 / 简单</text>＝记住了 → <text style="font-weight:800;color:#059669;">通过出队</text>，按算法排定下次复习时间；</view>
+            <view style="margin-top:6rpx;">🔴 <text style="font-weight:800;">重来 / 困难</text>＝没记住 → <text style="font-weight:800;color:#dc2626;">放回本批队列末尾</text>，稍后自动再次出现，不占完成名额；</view>
+            <view style="margin-top:6rpx;">只有反复刷到这张卡、最终评到「良好」及以上，<text style="font-weight:800;color:#00629B;">才计为通过</text>——所以实际评分次数会多于所选张数；</view>
+            <view style="margin-top:6rpx;">本轮开始时可选 30 / 40 / 60 / 自定义张（在「复习偏好」里改默认值），<text style="font-weight:800;">批内全部卡片通过 ＝ 本轮完成</text>。中途退出自动保存进度，下次从断点续学、无需重选数量。</view>
+          </view>
+
+          <!-- 指数级复习间隔：SM-2 调度说明 -->
+          <view style="font-size:28rpx;font-weight:800;margin:24rpx 0 12rpx;">⏳ 指数级复习间隔</view>
+          <view class="step">
+            <view style="font-weight:800;margin-bottom:6rpx;">每张卡都带一个「熟练因子 EF」（初始 2.5）与当前间隔，评分会同时改写两者：</view>
+            <view>· <text style="font-weight:700;">简单</text>：EF +0.15，间隔在「良好」结果上再 ×1.3 加速放大；</view>
+            <view>· <text style="font-weight:700;">良好</text>：EF 不变，间隔按 EF 放大（第二次起至少 6 天）；</view>
+            <view>· <text style="font-weight:700;">困难</text>：EF −0.15，间隔仅按 ×1.2 慢速前进；</view>
+            <view>· <text style="font-weight:700;">重来</text>：EF −0.2，间隔直接归零、<text style="font-weight:700;">10 分钟内再战</text>。</view>
+            <view style="margin-top:6rpx;">每次评分后，EF 还会<text style="font-weight:700;">朝基线 2.5 缓慢回归</text>（每次 8%）——所以持续答对能把触底的卡片拉回来，不会出现「EF 跌到底就再也翻不了身」的死循环。</view>
+            <view style="margin-top:6rpx;">连续答对时间隔呈指数拉长：新卡评「良好」按 <text style="font-weight:700;">1 天 → 6 天 → 15 天 → 38 天 → 90 天</text> 爬升（评「简单」起点 4 天、爬升更快）；而一旦「重来/困难」，间隔被压缩、卡片回到队列重做——这正是利用遗忘曲线，在最该复习的时刻出现。</view>
+            <view style="margin-top:6rpx;"><text style="font-weight:800;">⏳ 间隔上限</text>（在「复习偏好」里可改，当前 <text style="font-weight:700;">{{maxIntervalDays}} 天</text>）：任何一张卡的间隔都不会超过这个天数。为什么要封顶——备考有明确的时间边界，若间隔一路涨到 365 天，卡片会被排到<text style="font-weight:700;">考试日之后</text>、此后不再出现（实测 262 天备考窗口下，考前 60 天内只有 71% 的卡片被复习过、最久空档 128 天）。压到 90 天只需增加约 1% 的复习量，就能保证每张卡考前 3 个月内必被复习一次。改小会让复习量上升但考前覆盖更全。</view>
+            <view style="margin-top:6rpx;color:var(--sub);">复习时按钮下方的小字（如「重来 {{'<'}}10分」「良好 6天」）即按上述规则算出的「下次出现间隔」，与实际排期完全一致。</view>
+          </view>
+        </view>
+      </view>
+
+      <view wx:elif="{{activeSubModal === 'ebbinghaus'}}">
+        <view class="modal-title">📉 艾宾浩斯遗忘曲线</view>
+        <view class="modal-sub">Ebbinghaus Forgetting Curve · 记忆衰减与科学复习</view>
+        <view class="modal-body">
+          <view class="step">🧠 <text style="font-weight:700;">遗忘规律与复习时机</text>：艾宾浩斯发现，新学内容不复习会快速衰减——<text style="font-weight:700;">约 20 分钟只剩 58%，1 小时剩 44%，1 天后剩 33%，一周后仅剩约 25%</text>。本程序据此在即将遗忘的节点自动召回卡片（新卡良好按 <text style="font-weight:700;">1 天 → 3 天 → 8 天 → 更久</text> 指数拉长），每次复习都是一次记忆强度的“重置”。</view>
+          <view class="step">🔄 <text style="font-weight:700;">与评分联动</text>：评「良好 / 简单」＝复习成功、记忆上台阶；评「重来 / 困难」＝记忆仍不牢，卡片回炉，在遗忘逼近前再次出现。</view>
+          <view style="padding:20rpx;background:rgba(16,185,129,0.07);border:2rpx solid #a7f3d0;border-radius:16rpx;font-size:26rpx;line-height:1.8;color:var(--text);">
+            🎯 <text style="font-weight:800;color:#00629B;">完美对抗遗忘：</text>每天把当日「今日任务」做完（到期卡 + 新卡），让每张卡都达到「良好 / 简单」以上，高频考点就会稳稳压进长期记忆——这正是本小程序的设计初衷。
+          </view>
+        </view>
+      </view>
+
+      <view wx:elif="{{activeSubModal === 'guide'}}">
+        <view class="modal-title">❓ 使用说明</view>
+        <view class="modal-body">
+          <view class="step">1.将要导入的 txt 文件发送给"微信传输助手"</view>
+          <view class="step">2.点击"卡片导入/导出"</view>
+          <view class="step">3.设置"每日任务配额"与"考试日期"</view>
+        </view>
+      </view>
+
+      <view wx:elif="{{activeSubModal === 'about'}}">
+        <view class="modal-title">ℹ️ 关于本工具</view>
+        <view class="modal-sub">版本 {{appVersion}}</view>
+        <view class="modal-body">
+          <view class="step">
+            <view style="font-weight:600;margin-bottom:8rpx;">工具定位</view>
+            <view>{{positioning}}</view>
+          </view>
+          <view class="step">
+            <view style="font-weight:600;margin-bottom:8rpx;">数据存哪</view>
+            <view>卡片、复习记录与偏好设置全部保存在本机小程序存储中，不会上传到任何服务器。本工具不含服务器、不含网络请求；你导入的卡片与选择的图片只在你的设备内读取和处理，我们无法接触到其中任何内容。</view>
+          </view>
+          <view wx:if="{{contactMp || contactEmail}}" class="step">
+            <view style="font-weight:600;margin-bottom:8rpx;">联系方式</view>
+            <view wx:if="{{contactMp}}">公众号：{{contactMp}}（可在公众号内留言）</view>
+            <view wx:if="{{contactEmail}}">邮箱：{{contactEmail}}</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="modal-footer" id="modal-footer-anchor">
+        <button class="btn btn-primary" bindtap="closeModal">好的，知道了</button>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 每日任务配额（新卡 / 到期复习，各自独立；点预设立即生效） -->
+  <view wx:if="{{showQuotaModal}}" class="modal-mask" bindtap="closeQuotaModal" catchtouchmove="true">
+    <scroll-view scroll-y class="modal-card card-box" catchtap="noop">
+      <view class="modal-title">🎯 每日任务配额</view>
+      <view class="modal-sub">决定每天做多少张。新卡上限决定「多久过完首轮」（首轮天数 ≈ 待学新卡 ÷ 该值）；到期复习上限是时间闸门，设「不限」表示做完为止。</view>
+      <view class="modal-body">
+        <view class="quota-group">
+          <view class="quota-label">每日新卡上限</view>
+          <view class="preset-grid">
+            <view class="preset-opt {{newPerDay === 10 ? 'on' : ''}}" data-value="10" bindtap="quotaNewPreset">10 张</view>
+            <view class="preset-opt {{newPerDay === 20 ? 'on' : ''}}" data-value="20" bindtap="quotaNewPreset">20 张</view>
+            <view class="preset-opt {{newPerDay === 30 ? 'on' : ''}}" data-value="30" bindtap="quotaNewPreset">30 张</view>
+            <view class="preset-opt {{newPerDay === 50 ? 'on' : ''}}" data-value="50" bindtap="quotaNewPreset">50 张</view>
+          </view>
+        </view>
+
+        <view class="quota-group">
+          <view class="quota-label">每日到期复习上限</view>
+          <view class="preset-grid">
+            <view class="preset-opt {{reviewPerDay === 0 ? 'on' : ''}}" data-value="0" bindtap="quotaReviewPreset">不限</view>
+            <view class="preset-opt {{reviewPerDay === 60 ? 'on' : ''}}" data-value="60" bindtap="quotaReviewPreset">60 张</view>
+            <view class="preset-opt {{reviewPerDay === 100 ? 'on' : ''}}" data-value="100" bindtap="quotaReviewPreset">100 张</view>
+            <view class="preset-opt {{reviewPerDay === 150 ? 'on' : ''}}" data-value="150" bindtap="quotaReviewPreset">150 张</view>
+          </view>
+        </view>
+
+        <view wx:if="{{quotaHint}}" class="quota-hint" style="color:{{quotaWarn ? '#f87171' : 'var(--sub)'}};">{{quotaWarn ? '⚠️ ' : '📊 '}}{{quotaHint}}</view>
+
+        <view class="picker-actions">
+          <button class="btn btn-primary picker-btn" bindtap="closeQuotaModal">完成</button>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 单批卡片数设置弹层（点预设立即生效；自定义输入后点保存） -->
+  <view wx:if="{{showCountModal}}" class="modal-mask" bindtap="closeCountModal" catchtouchmove="true">
+    <scroll-view scroll-y class="modal-card card-box" catchtap="noop">
+      <view class="modal-title">🔢 单批卡片数</view>
+      <view class="modal-sub">每批连续做多少张（默认 30），只影响批次粒度、不决定每日总量。点击首页任意牌组即开始一批；做完可在完成页继续下一批，中途退出会保存进度、下次从断点续学。</view>
+      <view class="modal-body">
+        <view class="preset-grid">
+          <view class="preset-opt" data-value="30" bindtap="countPreset">30 张</view>
+          <view class="preset-opt" data-value="40" bindtap="countPreset">40 张</view>
+          <view class="preset-opt" data-value="60" bindtap="countPreset">60 张</view>
+        </view>
+
+        <view class="preset-custom {{countPickCustom ? 'on' : ''}}" bindtap="countCustomOpt">
+          <text class="custom-label">自定义</text>
+          <input
+            wx:if="{{countPickCustom}}"
+            class="custom-input"
+            type="number"
+            value="{{countCustomVal}}"
+            placeholder="输入数量"
+            focus="{{countPickCustom}}"
+            bindinput="countInput"
+            catchtap="noop"
+          />
+        </view>
+
+        <view class="picker-actions">
+          <button class="btn btn-ghost picker-btn" bindtap="closeCountModal">取消</button>
+          <button wx:if="{{countPickCustom}}" class="btn btn-primary picker-btn" bindtap="saveCount">保存自定义</button>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 卡片导入/导出从设置页直接进入，无口令弹层 -->
+</view>

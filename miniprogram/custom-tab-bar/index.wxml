@@ -1,0 +1,15 @@
+<view wx:if="{{!hidden}}" class="tb {{dark?'dark':''}}">
+  <view class="tb-inner">
+    <view
+      wx:for="{{list}}"
+      wx:key="pagePath"
+      class="tb-item {{selected === index ? 'on' : ''}}"
+      data-index="{{index}}"
+      data-path="{{item.pagePath}}"
+      bindtap="onTap"
+    >
+      <text class="tb-icon">{{item.icon}}</text>
+      <text class="tb-text">{{item.text}}</text>
+    </view>
+  </view>
+</view>

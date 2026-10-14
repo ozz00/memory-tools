@@ -1,0 +1,40 @@
+{
+  "pages": [
+    "pages/anki/index",
+    "pages/stats/index",
+    "pages/settings/index",
+    "pages/wrong/index",
+    "pages/admin/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "六西格玛黑带记忆卡",
+    "navigationBarBackgroundColor": "#051C2C",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#F4F6F9",
+    "backgroundTextStyle": "light",
+    "enablePullDownRefresh": false
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#8A94A6",
+    "selectedColor": "#00629B",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/anki/index",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/stats/index",
+        "text": "进度看板"
+      },
+      {
+        "pagePath": "pages/settings/index",
+        "text": "设置"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

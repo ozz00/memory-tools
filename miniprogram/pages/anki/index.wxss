@@ -1,0 +1,338 @@
+/* 刷题模式顶栏：返回 + 题集名（relative + z-index 防止翻转卡片的 3D 合成层盖住返回按钮点击） */
+.study-topbar {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  padding: 20rpx 24rpx 8rpx;
+}
+
+/* 刷题模式：页面纵向 flex 布局，卡片区域自动撑满到评分栏上方 */
+.page.study {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  box-sizing: border-box;
+  padding-bottom: 0;
+  overflow: hidden;
+}
+
+.page.study .flip-container {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+  margin: 0 24rpx 24rpx;
+}
+
+/* 操作提示条：固定屏幕最下方（仅首次显示，不占卡片空间） */
+.flip-hint {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 24rpx;
+  color: var(--muted);
+  padding: 14rpx 0 calc(14rpx + env(safe-area-inset-bottom));
+  pointer-events: none;
+  z-index: 90;
+}
+
+/* 正面选项按钮 */
+.anki-options {
+  margin-top: 16rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.anki-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12rpx;
+  border: 2rpx solid var(--border);
+  border-radius: 16rpx;
+  padding: 20rpx 24rpx;
+  font-size: 26rpx;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--soft);
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.opt-text { flex: 1; }
+
+.opt-mark { font-weight: 800; font-size: 30rpx; }
+
+.anki-option.chosen {
+  background: #eff6ff;
+  border-color: var(--brand);
+  color: #1e3a8a;
+  font-weight: 700;
+}
+
+.anki-option.correct {
+  background: #ecfdf5;
+  border-color: #059669;
+  color: #064e3b;
+  font-weight: 700;
+}
+
+.anki-option.wrong {
+  background: #fef2f2;
+  border-color: var(--bad);
+  color: #7f1d1d;
+  font-weight: 700;
+}
+
+.anki-option:active { opacity: 0.85; }
+
+/* 提交按钮：选项区末尾，选中后出现 */
+.submit-btn {
+  margin-top: 14rpx;
+  flex-shrink: 0;
+}
+
+/* 判分反馈横幅：正面底部，对绿错红，提交判分后显示并立即翻面 */
+.judge-banner {
+  flex-shrink: 0;
+  margin-top: 14rpx;
+  padding: 16rpx 24rpx;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  font-weight: 800;
+  text-align: center;
+}
+
+.judge-banner.ok {
+  background: #ecfdf5;
+  color: #047857;
+  border: 2rpx solid #a7f3d0;
+}
+
+.judge-banner.bad {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 2rpx solid #fecaca;
+}
+
+.back-btn {
+  width: 140rpx;
+  flex-shrink: 0;
+  font-size: 26rpx;
+  font-weight: 700;
+  color: var(--brand);
+  padding: 8rpx 0;
+}
+
+/* 首页题集序号徽标底色（深浅色自适应） */
+.deck-badge {
+  background: var(--soft);
+  color: var(--brand);
+}
+
+.flip-container {
+  margin: 24rpx;
+  height: 600rpx;
+  perspective: 1200rpx;
+}
+
+/* 静止态：保持 2D 渲染，避免 3D 合成层把文字栅格化成低分辨率纹理（防模糊的关键） */
+.flip-card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: flat;
+  transition: none;
+}
+
+.face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 32rpx;
+  transition: opacity 0.18s ease;
+}
+
+/* 静止态用 opacity + z-index 决定显示哪一面（2D，文字绝对清晰） */
+.face-front { opacity: 1; z-index: 2; }
+.face-back  { opacity: 0; z-index: 1; pointer-events: none; }
+
+.flip-card.flipped .face-front { opacity: 0; z-index: 1; pointer-events: none; }
+.flip-card.flipped .face-back  { opacity: 1; z-index: 2; pointer-events: auto; }
+
+/* 动画态：仅翻转的 0.5s 内启用 3D，动画结束立即降级回 2D */
+.flip-card.flipping {
+  transform-style: preserve-3d;
+  transition: transform 0.5s ease;
+}
+
+.flip-card.flipping .face {
+  backface-visibility: hidden;
+  transition: none;
+}
+
+/* 动画态下两面都设为可见，改由 backface-visibility 决定朝向，
+   否则背面会因静止态的 opacity:0 在翻转过程中不可见 */
+.flip-card.flipping .face-front,
+.flip-card.flipping .face-back {
+  opacity: 1;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.flip-card.flipping .face-back {
+  transform: rotateY(180deg);
+}
+
+.flip-card.flipping.flip-to-back  { transform: rotateY(180deg); }
+.flip-card.flipping.flip-to-front { transform: rotateY(0deg); }
+
+/* 底部固定容器：评分按钮 */
+.answer-dock {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 10rpx 12rpx;
+  padding-bottom: calc(10rpx + env(safe-area-inset-bottom));
+  background: var(--bg);
+  border-top: 2rpx solid var(--border);
+}
+
+/* 评分按钮行 */
+.ratings {
+  display: flex;
+  gap: 7rpx;
+}
+
+.ratings .btn {
+  flex: 1;
+  min-width: 0;
+  height: 56rpx;
+  line-height: 56rpx;
+  padding: 0 6rpx;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  font-weight: 700;
+  text-align: center;
+  overflow: hidden;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.rating-label {
+  font-size: 28rpx;
+  font-weight: 800;
+}
+
+.rating-hint {
+  font-size: 28rpx;
+  margin-left: 4rpx;
+  color: inherit;
+  opacity: 0.72;
+}
+
+/* ===== 复习数量选择弹窗 ===== */
+.picker-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48rpx;
+}
+
+.picker-card {
+  width: 100%;
+  max-width: 620rpx;
+  background: var(--card);
+  border-radius: 28rpx;
+  padding: 36rpx 32rpx 28rpx;
+  box-sizing: border-box;
+  box-shadow: 0 16rpx 48rpx rgba(0, 0, 0, 0.18);
+}
+
+.picker-title {
+  font-size: 32rpx;
+  font-weight: 800;
+  text-align: center;
+}
+
+.picker-sub {
+  font-size: 24rpx;
+  color: var(--sub);
+  text-align: center;
+  line-height: 1.6;
+  margin: 12rpx 0 28rpx;
+  padding: 0 8rpx;
+}
+
+/* 底部按钮行 */
+.picker-actions {
+  display: flex;
+  gap: 20rpx;
+}
+
+.picker-btn {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 题号徽标（正反面顶部）：「第 N 题」——原始题号优先，旧卡按题集顺序编号 */
+.q-no-chip {
+  align-self: flex-start;
+  flex-shrink: 0;
+  padding: 6rpx 18rpx;
+  border-radius: 999rpx;
+  background: var(--soft);
+  color: var(--sub);
+  font-size: 22rpx;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+/* 背面「复制链接看原文」入口（背面含链接时自动出现，可多条） */
+.article-link {
+  margin-top: 0;
+  padding: 18rpx 24rpx;
+  border-radius: 16rpx;
+  border: 2rpx solid var(--brand);
+  color: var(--brand);
+  font-size: 26rpx;
+  font-weight: 700;
+  text-align: center;
+  background: transparent;
+  flex-shrink: 0;
+  word-break: break-all;
+}
+
+/* 卡片补图：图片展示 + 补图入口 */
+.card-img {
+  width: 100%;
+  border-radius: 12rpx;
+  border: 2rpx solid var(--bd, #e5e7eb);
+}
+.img-add {
+  margin-top: 12rpx;
+  padding: 10rpx 0;
+  border-radius: 12rpx;
+  border: 2rpx dashed var(--bd, #9ca3af);
+  color: var(--sub, #6b7280);
+  font-size: 24rpx;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.article-link:active {
+  opacity: 0.7;
+}

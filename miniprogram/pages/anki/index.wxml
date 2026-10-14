@@ -1,0 +1,175 @@
+<view class="page tab-page {{dark?'dark':''}} {{mode=='study'?'study':''}}">
+  <!-- ==== 首页：考题集列表 ==== -->
+  <block wx:if="{{mode == 'home'}}">
+    <view class="card-box" style="display:flex;align-items:center;gap:16rpx;margin:24rpx;padding:28rpx;">
+      <view style="width:56rpx;height:56rpx;background:rgba(5,150,105,0.15);border-radius:14rpx;display:flex;align-items:center;justify-content:center;font-size:30rpx;flex-shrink:0;">📚</view>
+      <view style="flex:1;">
+        <view style="font-size:30rpx;font-weight:800;">资料库</view>
+        <view style="font-size:24rpx;color:var(--sub);">共 {{totalCards}} 张卡片 · 点击牌组进入复习</view>
+      </view>
+    </view>
+
+    <!-- 今日任务：到期复习与新卡各自独立配额（配额见「设置 → 复习偏好」） -->
+    <view wx:if="{{todayTask}}" class="card-box" style="margin:0 24rpx 20rpx;padding:28rpx;">
+      <view style="display:flex;align-items:center;justify-content:space-between;">
+        <view style="font-size:28rpx;font-weight:800;">今日任务</view>
+        <view style="font-size:24rpx;font-weight:700;color:{{todayTask.total > 0 ? 'var(--brand)' : '#34d399'}};">{{todayTask.total > 0 ? '待完成 ' + todayTask.total + ' 张' : '✓ 已完成'}}</view>
+      </view>
+      <view style="display:flex;gap:16rpx;margin-top:20rpx;">
+        <view style="flex:1;background:var(--bg);border-radius:12rpx;padding:16rpx;text-align:center;">
+          <view style="font-size:36rpx;font-weight:800;">{{todayTask.due}}</view>
+          <view style="font-size:22rpx;color:var(--sub);margin-top:4rpx;">到期复习</view>
+        </view>
+        <view style="flex:1;background:var(--bg);border-radius:12rpx;padding:16rpx;text-align:center;">
+          <view style="font-size:36rpx;font-weight:800;">{{todayTask.new}}</view>
+          <view style="font-size:22rpx;color:var(--sub);margin-top:4rpx;">新卡</view>
+        </view>
+        <view style="flex:1;background:var(--bg);border-radius:12rpx;padding:16rpx;text-align:center;">
+          <view style="font-size:36rpx;font-weight:800;">{{todayDone}}</view>
+          <view style="font-size:22rpx;color:var(--sub);margin-top:4rpx;">今日已做</view>
+        </view>
+      </view>
+      <view wx:if="{{examPlan}}" style="margin-top:18rpx;font-size:23rpx;line-height:1.65;color:{{examPlan.enough ? 'var(--sub)' : '#f87171'}};">
+        <text wx:if="{{examPlan.newLeft === 0}}">🎯 距考试 {{examPlan.days}} 天 · 新卡已全部过完首轮，接下来专心复习、保持保留率</text>
+        <text wx:elif="{{examPlan.enough}}">🎯 距考试 {{examPlan.days}} 天 · 待学新卡 {{examPlan.newLeft}} 张 · 按每天 {{examPlan.configured}} 张约 {{examPlan.firstRoundDays}} 天过完首轮</text>
+        <text wx:else>⚠️ 距考试 {{examPlan.days}} 天 · 待学新卡 {{examPlan.newLeft}} 张，按每天 {{examPlan.configured}} 张需 {{examPlan.firstRoundDays}} 天，过不完首轮；建议提到 {{examPlan.needPerDay}} 张/天</text>
+      </view>
+    </view>
+
+    <view wx:if="{{deckList.length == 0}}" class="empty">
+      <view style="font-size:80rpx;">📭</view>
+      <view class="empty-title">还没有牌组</view>
+      <view class="empty-desc">前往「设置 → 卡片导入/导出」导入 Anki TXT 建立第一个牌组。</view>
+    </view>
+
+    <view
+      wx:for="{{deckList}}"
+      wx:key="name"
+      class="card-box"
+      bindtap="openDeck"
+      data-deck="{{item.name}}"
+      data-total="{{item.total}}"
+      style="display:flex;align-items:center;gap:16rpx;margin:0 24rpx 20rpx;padding:28rpx;"
+    >
+      <view class="deck-badge" style="width:64rpx;height:64rpx;border-radius:16rpx;display:flex;align-items:center;justify-content:center;font-size:32rpx;font-weight:800;flex-shrink:0;">{{item.index}}</view>
+      <view style="flex:1;min-width:0;">
+        <view style="font-size:30rpx;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{item.name}}</view>
+        <view style="font-size:24rpx;color:var(--sub);margin-top:6rpx;">{{item.total}} 张 · 新 {{item.newCount}} · 待复习 {{item.dueCount}}<text wx:if="{{item.progress}}" style="color:var(--brand);font-weight:700;"> · 进行中 {{item.progress}}</text></view>
+      </view>
+      <view style="font-size:44rpx;color:var(--muted);flex-shrink:0;">›</view>
+    </view>
+
+      <view style="height:8rpx;"></view>
+    </block>
+
+  <!-- ==== 刷题模式 ==== -->
+  <block wx:else>
+    <view class="study-topbar">
+      <view class="back-btn" catchtap="goHome">‹ 牌组列表</view>
+      <view style="flex:1;text-align:center;font-size:28rpx;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{currentDeck}}</view>
+      <view bindtap="onToggleFav" style="width:140rpx;flex-shrink:0;text-align:right;font-size:40rpx;color:{{isFav?'#f59e0b':'var(--muted)'}};">{{isFav?'★':'☆'}}</view>
+    </view>
+
+    <view wx:if="{{deck.length == 0}}" class="empty">
+      <view style="font-size:80rpx;">{{todayBacklog > 0 ? '✅' : '📭'}}</view>
+      <view class="empty-title">{{todayBacklog > 0 ? '今日任务已完成' : '该牌组暂无可复习卡片'}}</view>
+      <view class="empty-desc">
+        <block wx:if="{{todayBacklog > 0}}">今日配额已用完，该牌组还剩 {{todayBacklog}} 张留到明天。想接着练可点「额外加练」。</block>
+        <block wx:else>此牌组卡片已全部复习完毕。</block>
+      </view>
+      <view style="display:flex;gap:16rpx;width:100%;">
+        <button wx:if="{{todayBacklog > 0}}" class="btn btn-ghost" bindtap="extraPractice" style="flex:1;">额外加练</button>
+        <button class="btn btn-primary" bindtap="goHome" style="flex:1;">返回牌组列表</button>
+      </view>
+    </view>
+
+    <view wx:elif="{{completed}}" class="empty">
+      <view style="font-size:80rpx;">🎉</view>
+      <view class="empty-title">「{{currentDeck}}」本轮复习完成</view>
+      <view class="empty-desc">
+        <view>本轮 {{session.total || deck.length}} 张已全部通过。</view>
+        <view wx:if="{{todayLeft > 0}}" style="margin-top:12rpx;color:var(--brand);font-weight:800;font-size:28rpx;">今日还有 {{todayLeft}} 张待完成，建议一鼓作气做完。</view>
+        <view wx:else style="margin-top:12rpx;color:#34d399;font-weight:800;font-size:28rpx;">✓ 今日任务已全部完成</view>
+        <view style="margin-top:12rpx;color:var(--text);font-weight:800;font-size:28rpx;">⭐ 通过标准：每张卡必须评到「良好」或「简单」才算通过。</view>
+        <view style="margin-top:8rpx;">评「重来」或「困难」都会被放回队列末尾重做——只有反复刷到这张卡、确认「良好」及以上，才计为通过、进入下一张。</view>
+      </view>
+      <view style="display:flex;gap:16rpx;width:100%;">
+        <button wx:if="{{todayLeft > 0}}" class="btn btn-primary" bindtap="continueToday" style="flex:1.3;">继续 · 剩 {{todayLeft}} 张</button>
+        <button wx:else class="btn btn-primary" bindtap="extraPractice" style="flex:1.3;">额外加练</button>
+        <button class="btn btn-ghost" bindtap="restart" style="flex:1;">再过一遍</button>
+        <button class="btn btn-ghost" bindtap="goHome" style="flex:0.8;">返回</button>
+      </view>
+    </view>
+
+    <block wx:elif="{{current}}">
+      <view class="flip-container" bindtap="onTapCard">
+        <view class="flip-card {{flipped?'flipped':''}} {{flipping?'flipping':''}} {{flipTarget}}">
+          <view class="face face-front card-box">
+            <view wx:if="{{qNoText}}" class="q-no-chip">{{qNoText}}</view>
+            <rich-text nodes="{{frontNodes}}" class="rich" style="flex-shrink:0;line-height:1.8;"></rich-text>
+            <view wx:if="{{cardImages.length}}" style="margin-top:12rpx;display:flex;flex-direction:column;gap:12rpx;">
+              <image wx:for="{{cardImages}}" wx:key="*this" src="{{item}}" mode="widthFix" class="card-img" data-url="{{item}}" catchtap="onPreviewImage" catchlongpress="onDeleteImage" />
+            </view>
+            <view class="img-add" catchtap="onAddImage">📷 {{cardImages.length ? '继续补图' : '卡片缺图？点此补图'}}</view>
+            <view wx:if="{{optionList.length}}" class="anki-options">
+              <view wx:for="{{optionList}}" wx:key="prefix" data-prefix="{{item.prefix}}" catchtap="onSelectOption" class="{{item.cls}}">
+                <text class="opt-text">{{item.text}}</text>
+                <text wx:if="{{isSubmitted && item.mark}}" class="opt-mark">{{item.mark}}</text>
+              </view>
+              <view wx:if="{{selectedOptions.length && !isSubmitted && !current.missingAnswer}}" class="btn btn-primary submit-btn" catchtap="onSubmitAnswer">提交</view>
+            </view>
+            <view wx:if="{{isSubmitted && judgeResult}}" class="judge-banner {{judgeResult.right ? 'ok' : 'bad'}}">
+              {{judgeResult.right ? '✓ ' + judgeResult.text : '✗ ' + judgeResult.text}}
+            </view>
+          </view>
+          <view class="face face-back card-box">
+            <view wx:if="{{qNoText}}" class="q-no-chip" style="margin-bottom:12rpx;">{{qNoText}}</view>
+            <view wx:if="{{current.correctAnswer || selectedPrefix || current.missingAnswer}}" style="display:flex;align-items:center;gap:12rpx;margin-bottom:12rpx;flex-wrap:wrap;">
+              <text wx:if="{{current.correctAnswer}}" class="chip" style="background:#ecfdf5;color:#064e3b;border:none;">正确答案 {{current.correctAnswer}}</text>
+              <text wx:if="{{selectedPrefix}}" class="chip" style="background:#fef3c7;color:#78350f;border:none;">你的作答 {{selectedPrefix}}</text>
+              <text wx:if="{{current.missingAnswer}}" class="chip" style="background:#fef2f2;color:#b91c1c;border:none;">⚠ 未识别到正确答案</text>
+            </view>
+            <rich-text nodes="{{backNodes}}" class="rich" style="flex:1;overflow:auto;line-height:1.8;"></rich-text>
+            <view wx:if="{{cardImages.length}}" style="margin-top:12rpx;display:flex;flex-direction:column;gap:12rpx;">
+              <image wx:for="{{cardImages}}" wx:key="*this" src="{{item}}" mode="widthFix" class="card-img" data-url="{{item}}" catchtap="onPreviewImage" catchlongpress="onDeleteImage" />
+            </view>
+            <view class="img-add" catchtap="onAddImage">📷 补图</view>
+            <view wx:if="{{backLinks.length}}" style="margin-top:16rpx;display:flex;flex-direction:column;gap:12rpx;">
+              <view class="article-link" wx:for="{{backLinks}}" wx:key="url" catchtap="onOpenArticle" data-url="{{item.url}}">🔗 {{item.text}}</view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 操作提示：固定在屏幕最下方，仅首次使用显示，交互一次后永久隐藏 -->
+      <view wx:if="{{current && !flipped && showFlipHint}}" class="flip-hint">
+        {{current.isMulti ? '多选题：点选多个答案后点「提交」' : (current.options && current.options.length ? '点选答案后点「提交」判分' : '点击卡片查看答案')}}
+      </view>
+
+      <!-- 悬浮评分栏占位，避免固定栏遮住卡片 -->
+      <view wx:if="{{flipped}}" style="height:150rpx;"></view>
+
+      <!-- 底部固定容器：评分按钮 -->
+      <view wx:if="{{flipped}}" class="answer-dock">
+        <view class="ratings">
+          <button wx:for="{{ratings}}" wx:key="key" data-rating="{{item.key}}" bindtap="onRate" class="btn" style="background:{{item.bg}};color:{{item.fg}};border:2rpx solid {{item.bd}};">
+            <text class="rating-label">{{item.label}}</text>
+            <text class="rating-hint">{{item.hint}}</text>
+          </button>
+        </view>
+      </view>
+    </block>
+  </block>
+
+  <!-- ==== 退出复习确认弹窗（学习中点击「题集列表」弹出） ==== -->
+  <view wx:if="{{showQuit}}" class="picker-mask" bindtap="cancelQuit">
+    <view class="picker-card" catchtap="noop">
+      <view class="picker-title">退出本次复习？</view>
+      <view class="picker-sub">{{quitText}}</view>
+      <view class="picker-actions">
+        <button class="btn btn-ghost picker-btn" bindtap="cancelQuit">继续复习</button>
+        <button class="btn btn-primary picker-btn" bindtap="confirmQuit">保存并退出</button>
+      </view>
+    </view>
+  </view>
+</view>

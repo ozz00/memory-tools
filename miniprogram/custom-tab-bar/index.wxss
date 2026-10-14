@@ -1,0 +1,71 @@
+/* 自定义底部导航条：图标 + 文字横向排列（图标左、文字右），主体 76rpx + 底部安全区 */
+.tb {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 600;
+  background: #ffffff;
+  border-top: 2rpx solid #e2e8f0;
+}
+
+.tb.dark {
+  background: #142242;
+  border-top-color: #1e3a5f;
+}
+
+.tb-inner {
+  display: flex;
+  align-items: stretch;
+  height: calc(76rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.tb-item {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tb-item:active { opacity: 0.7; }
+
+.tb-icon {
+  font-size: 32rpx;
+  line-height: 1;
+  /* emoji 在不同系统的颜色/字形会有差异，给一个统一的字面渲染 */
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+}
+
+.tb-text {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #6b7280;
+  line-height: 1;
+}
+
+.tb-item.on .tb-icon {
+  /* 选中态图标放大一点，强化反馈 */
+  transform: scale(1.08);
+}
+
+.tb-item.on .tb-text {
+  color: #00629b;
+  font-weight: 800;
+}
+
+/* 暗黑模式：文字用接近白的浅灰（#e6ecf3 / #38bdf8），保证对比度清晰可读，
+   上一版的 #8b9ab0 在 #142242 背景上对比度仅 ~3:1，远低于 WCAG 4.5:1，
+   在某些 OLED 屏幕/低分辨率机型上会糊成一片 */
+.tb.dark .tb-text {
+  color: #e6ecf3;
+  font-weight: 700;
+}
+.tb.dark .tb-item.on .tb-text {
+  color: #38bdf8;
+  font-weight: 800;
+}

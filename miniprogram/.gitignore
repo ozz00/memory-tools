@@ -1,0 +1,14 @@
+# 微信开发者工具本地私有配置（含本机路径/条件编译设置，官方建议不入库）
+project.private.config.json
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# 依赖与构建产物
+node_modules/
+miniprogram_npm/
+package-lock.json
+
+# 日志
+*.log

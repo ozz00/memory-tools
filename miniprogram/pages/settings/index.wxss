@@ -1,0 +1,227 @@
+.list .row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28rpx;
+  border-bottom: 2rpx solid var(--border);
+}
+
+.list .row:last-child {
+  border-bottom: none;
+}
+
+.list .row.clickable:active {
+  opacity: 0.7;
+}
+
+.modal-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* 底部预留自定义 tabBar 高度（76rpx + 安全区）再留 44rpx 呼吸位。
+     注意：自定义 tabBar 在微信里是独立图层、层级高于页面内 z-index，
+     弹窗无法盖住它，只能靠这里的留白避开。 */
+  padding: 24rpx 32rpx calc(120rpx + env(safe-area-inset-bottom));
+}
+
+/* 弹窗卡片自身即滚动容器。三条设计约束，缺一不可：
+   1) 不依赖 flex 收缩：scroll-view 在部分机型/基础库下不参与 flex 收缩，
+      一旦卡片高度小于内容高度，收缩压力会全部落到按钮上 → 按钮被压扁、
+      文字被裁（iPhone 实测「好的，知道了」高度被压到 ~44%）。
+   2) 高度只用 max-height:100%（相对遮罩内容盒），不用 vh——vh 在不同机型/
+      导航栏口径下含义不一致，85vh 曾小于「70vh 正文 + 固定头部尾部」的最小需求，
+      必然溢出。
+   3) 内容超出时整卡滚动，底部按钮永远可达、不被遮挡。 */
+.modal-card {
+  width: 100%;
+  max-width: 600rpx;
+  max-height: 100%;
+  box-sizing: border-box;
+  padding: 32rpx;
+}
+
+/* 长文弹窗（SM-2 / 艾宾浩斯）：给卡片「确定高度」＝遮罩内容盒高度。
+   微信 scroll-view 竖向滚动要求固定高度，height:100% 相对 position:fixed 的遮罩
+   定高内容盒解析，取到的就是可视可用高度，无需 vh、无魔法数。 */
+/* 长文弹窗（SM-2 / 艾宾浩斯）：必须给卡片「确定高度」，否则滚动不起来。
+   实测（scripts/verify_modal_layout.cjs）：只写 max-height:100% 时，卡片被内容撑到
+   645px、scrollHeight 1036px，但 scroll-into-view 位移 0px——微信 scroll-view 的
+   滚动范围按「声明高度」计算，仅被 max-height 夹住的盒子不产生滚动范围，
+   折叠下方的内容（含底部按钮）永远滚不到。height:100% 相对 position:fixed 遮罩的
+   定高内容盒解析，取到的就是可视可用高度，无需 vh、无魔法数。 */
+.modal-card.card-tall {
+  height: 100%;
+}
+
+.modal-title {
+  font-size: 32rpx;
+  font-weight: 800;
+  margin-bottom: 6rpx;
+}
+
+.modal-sub {
+  font-size: 24rpx;
+  color: var(--sub);
+  padding-bottom: 20rpx;
+  border-bottom: 2rpx solid var(--border);
+  margin-bottom: 20rpx;
+}
+
+.modal-body {
+  font-size: 26rpx;
+  line-height: 1.7;
+}
+
+/* 底部按钮栏。以下两条路都实测走不通，故按钮放在滚动内容末尾：
+   1) position:sticky 吸附——微信 scroll-view 内部是独立滚动实现，sticky 在开发者工具
+      与真机均不生效（实测按钮 y 停在 1034，卡片可视区只到 657）；
+   2) flex 定高卡片 + 正文收缩 + 按钮定高——scroll-view 不参与 flex 收缩，
+      收缩压力全落在按钮上把它压扁（真机实测高度掉到 ~44%、文字被裁）。
+   现方案：整卡滚动，按钮位于内容末尾，滑到底即可点击；点遮罩空白处也能关闭。 */
+.modal-footer {
+  margin-top: 24rpx;
+}
+
+.rating-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx;
+  border: 2rpx solid var(--border);
+  border-radius: 16rpx;
+  margin-bottom: 14rpx;
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+/* SM-2 弹窗四档评分 2×2 网格单元（单行紧凑：● 档名 分数） */
+.rating-cell {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  padding: 12rpx 16rpx;
+  border: 2rpx solid var(--border);
+  border-radius: 12rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+  box-sizing: border-box;
+}
+
+.step {
+  padding: 20rpx;
+  background: var(--soft);
+  border-radius: 16rpx;
+  margin-bottom: 14rpx;
+  font-size: 26rpx;
+  line-height: 1.7;
+}
+
+.kv {
+  display: flex;
+  justify-content: space-between;
+  padding: 18rpx 0;
+  border-bottom: 2rpx solid var(--border);
+  font-size: 26rpx;
+}
+
+.kv text:last-child {
+  font-weight: 700;
+}
+
+/* ===== 每轮学习卡片数量设置弹层（预设按钮 / 自定义输入） ===== */
+.preset-grid {
+  display: flex;
+  gap: 16rpx;
+  margin-bottom: 20rpx;
+}
+
+.preset-opt {
+  flex: 1;
+  height: 92rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: var(--text);
+  background: var(--soft);
+  border: 3rpx solid var(--border);
+  border-radius: 18rpx;
+  transition: all 0.15s;
+}
+
+.preset-opt.on {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #ffffff;
+}
+
+.preset-opt:active { opacity: 0.8; }
+
+.preset-custom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  min-height: 92rpx;
+  box-sizing: border-box;
+  padding: 16rpx 24rpx;
+  background: var(--soft);
+  border: 3rpx solid var(--border);
+  border-radius: 18rpx;
+  margin-bottom: 28rpx;
+}
+
+.preset-custom.on {
+  border-color: var(--brand);
+}
+
+.custom-label {
+  font-size: 28rpx;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.custom-input {
+  flex: 1;
+  text-align: right;
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* ===== 每日任务配额弹层（新卡 / 到期复习分组） ===== */
+.quota-group {
+  margin-bottom: 28rpx;
+}
+
+.quota-label {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: var(--sub);
+  margin-bottom: 14rpx;
+}
+
+.quota-hint {
+  font-size: 24rpx;
+  line-height: 1.65;
+  margin-bottom: 24rpx;
+}
+
+.picker-actions {
+  display: flex;
+  gap: 20rpx;
+}
+
+.picker-btn {
+  flex: 1;
+  min-width: 0;
+}

@@ -1,0 +1,101 @@
+<view class="page {{dark?'dark':''}}">
+  <!-- 列表视图 -->
+  <view wx:if="{{mode === 'list'}}">
+    <view wx:if="{{wrongCards.length === 0}}" class="empty">
+      <view style="font-size:80rpx;">✨</view>
+      <view class="empty-title">错题本已全部清空</view>
+      <view class="empty-desc">在「首页」牌组复习时答错的卡片会自动收录到这里。</view>
+    </view>
+
+    <block wx:else>
+      <view class="card-box banner">
+        <view style="display:flex;justify-content:flex-start;align-items:center;margin-bottom:12rpx;">
+          <text style="font-size:24rpx;font-weight:800;font-family:monospace;">{{wrongCards.length}} 张待攻克</text>
+        </view>
+        <view style="font-size:30rpx;font-weight:800;margin-bottom:6rpx;">错题专项重练</view>
+        <view style="font-size:24rpx;opacity:0.9;line-height:1.6;margin-bottom:20rpx;">答对即自动移出错题本，集中突击消灭易错点。</view>
+        <button class="btn" style="background:#fff;color:#b91c1c;font-weight:800;" bindtap="startPractice">
+          🚀 立即开始专项重练（{{wrongCards.length}}）
+        </button>
+      </view>
+
+      <view style="display:flex;justify-content:space-between;align-items:center;padding:24rpx 28rpx 0;">
+        <text style="font-size:24rpx;color:var(--sub);">错题列表</text>
+        <view bindtap="clearAll" style="font-size:24rpx;color:var(--sub);display:flex;align-items:center;gap:6rpx;">
+          <text>🗑️</text><text>一键清空</text>
+        </view>
+      </view>
+
+      <view wx:for="{{wrongCards}}" wx:key="id" class="card-box wrong-row" data-id="{{item.id}}" bindtap="removeOne">
+        <view style="display:flex;gap:12rpx;align-items:center;">
+          <text style="font-size:24rpx;font-weight:800;padding:4rpx 12rpx;background:#fee2e2;color:#b91c1c;border-radius:8rpx;">#{{index+1}}</text>
+          <text style="font-size:24rpx;color:var(--sub);">{{item.stage}}</text>
+        </view>
+        <view style="font-size:26rpx;line-height:1.5;color:var(--text);margin-top:8rpx;">{{item.frontText}}</view>
+        <view style="text-align:right;margin-top:8rpx;color:var(--muted);font-size:24rpx;">点击移除 ›</view>
+      </view>
+    </block>
+  </view>
+
+  <!-- 练习中 -->
+  <view wx:elif="{{mode === 'practice' && current}}">
+    <view class="card-box progress-line">
+      <view style="display:flex;align-items:center;gap:8rpx;">
+        <text style="font-size:24rpx;padding:4rpx 12rpx;background:#fee2e2;color:#b91c1c;border:2rpx solid #fecaca;border-radius:999rpx;font-weight:700;">错题 {{index+1}}</text>
+        <text style="font-size:24rpx;color:var(--sub);">{{current.cardType === 'single_choice' ? '单选' : '闪卡'}}</text>
+      </view>
+      <view style="display:flex;align-items:center;gap:12rpx;">
+        <text wx:if="{{justCleared}}" style="color:#059669;font-size:24rpx;font-weight:700;">✓ 已移出错题本</text>
+        <text style="color:var(--muted);font-family:monospace;font-size:24rpx;">得分 {{score}}</text>
+        <view bindtap="stopPractice" style="color:var(--sub);font-size:24rpx;">退出</view>
+      </view>
+    </view>
+
+    <view class="card-box question-card">
+      <rich-text nodes="{{frontNodes}}" class="rich" style="line-height:1.8;"></rich-text>
+    </view>
+
+    <block wx:if="{{current.options && current.options.length > 0}}">
+      <view class="options">
+      <view wx:for="{{optionList}}" wx:key="prefix" data-prefix="{{item.prefix}}" bindtap="onSelectOption" class="{{item.cls}}">
+        <text>{{item.text}}</text>
+      </view>
+    </view>
+      <view wx:if="{{isSubmitted}}" class="card-box explain">
+        <view style="font-weight:700;margin-bottom:8rpx;">💡 考点解析（参考答案：{{current.correctAnswer}}）</view>
+        <rich-text nodes="{{backNodes}}" class="rich" style="line-height:1.8;"></rich-text>
+      </view>
+      <view class="bottom-bar">
+        <button wx:if="{{!isSubmitted}}" class="btn btn-primary" style="background:#b91c1c;" bindtap="submitOption" disabled="{{!selectedOption}}">确认提交</button>
+        <button wx:else class="btn btn-primary" bindtap="next">{{index < practiceDeck.length - 1 ? '下一张' : '查看重练结果'}}</button>
+      </view>
+    </block>
+
+    <block wx:else>
+      <view wx:if="{{!isFlipped}}" class="card-box flip-placeholder" bindtap="flip">
+        <text style="font-size:50rpx;">↻</text>
+        <text style="font-size:26rpx;color:var(--sub);">点击翻转查看答案解析</text>
+      </view>
+      <view wx:else class="card-box explain">
+        <view style="font-weight:700;color:#065f46;margin-bottom:8rpx;">📗 概念要点与答案解析</view>
+        <rich-text nodes="{{backNodes}}" class="rich" style="line-height:1.8;"></rich-text>
+        <view wx:if="{{current.explanation}}" style="margin-top:14rpx;padding:16rpx;background:#fffbeb;border-radius:12rpx;font-size:24rpx;color:#92400e;">💡 {{current.explanation}}</view>
+        <view class="bottom-bar" style="display:grid;grid-template-columns:1fr 1fr;gap:14rpx;">
+          <button class="btn btn-ghost" bindtap="markFlashcard" data-correct="false">尚未掌握</button>
+          <button class="btn btn-primary" bindtap="markFlashcard" data-correct="true">已掌握（移出）</button>
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <!-- 练习完成 -->
+  <view wx:elif="{{mode === 'finished'}}" class="empty">
+    <view style="font-size:80rpx;">🎉</view>
+    <view class="empty-title">本轮重练已完成</view>
+    <view class="empty-desc">本次答对 {{score}} 张并已自动移出错题本，剩余 {{wrongCards.length}} 张待攻克。</view>
+    <view style="display:flex;gap:24rpx;width:100%;">
+      <button class="btn btn-ghost" bindtap="stopPractice" style="flex:1;">返回错题列表</button>
+      <button class="btn btn-primary" style="flex:1;background:#b91c1c;" bindtap="startPractice" wx:if="{{wrongCards.length > 0}}">继续重练剩余</button>
+    </view>
+  </view>
+</view>

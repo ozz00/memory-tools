@@ -1,0 +1,6 @@
+{
+  "name": "六西格玛黑带 Anki 备考宝典",
+  "description": "专为中国质量协会(CAQ)六西格玛黑带考生打造的 Anki 记忆与刷题系统，内置 DMAIC 全阶段真题库与 SM-2 间隔重复算法，支持后台静默导入 Anki .apkg 题库。",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

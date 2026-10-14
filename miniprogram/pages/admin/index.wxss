@@ -1,0 +1,263 @@
+.tabs {
+  display: flex;
+  padding: 0 24rpx;
+  gap: 12rpx;
+}
+
+.tab {
+  flex: 1;
+  text-align: center;
+  padding: 18rpx 0;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: var(--sub);
+  background: var(--soft);
+  border-radius: 16rpx 16rpx 0 0;
+}
+
+.tab.on {
+  background: var(--card);
+  color: var(--brand);
+  font-weight: 800;
+  border-bottom: 4rpx solid var(--brand);
+}
+
+.panel {
+  margin: 16rpx 24rpx;
+  padding: 24rpx;
+}
+
+.mode-btn {
+  flex: 1;
+  text-align: center;
+  padding: 18rpx;
+  font-size: 26rpx;
+  font-weight: 600;
+  border: 2rpx solid var(--border);
+  border-radius: 16rpx;
+  color: var(--sub);
+  background: var(--soft);
+}
+
+/* 上传按钮：虚线高亮区，提示点击选择 / 模拟器拖拽文件
+   字号与 .btn 一致（28rpx）让「⬆️ 上传 Anki TXT / CSV 文件」单行完整显示；
+   不再用省略号截断（让文字全部可见）；按钮宽度走父容器满宽 */
+.btn-upload {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 88rpx;
+  border: 3rpx dashed var(--brand);
+  border-radius: 16rpx;
+  background: rgba(0, 98, 155, 0.06);
+  color: var(--brand);
+  font-size: 28rpx;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.page.dark .btn-upload {
+  background: rgba(56, 189, 248, 0.1);
+  border-color: #38BDF8;
+  color: #38BDF8;
+}
+
+.mode-btn.on {
+  background: var(--brand);
+  color: #fff;
+  border-color: var(--brand);
+  font-weight: 800;
+}
+
+.mode-btn.on.warn {
+  background: #b91c1c;
+  border-color: #b91c1c;
+}
+
+.preview-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 16rpx 0;
+  border-bottom: 2rpx solid var(--border);
+}
+
+.preview-row:last-child {
+  border-bottom: none;
+}
+
+/* ============ 卡片导入：放大预览框（仅作用于 txt tab 的 preview-box） ============ */
+.preview-box {
+  /* 比普通 panel 上下更宽，让每张预览卡的呼吸感更强 */
+  padding: 28rpx 28rpx 32rpx;
+}
+
+.preview-box .preview-list {
+  /* 给整列预览一个最低高度，避免题数少时显得空 */
+  min-height: 320rpx;
+}
+
+.preview-box .preview-row {
+  /* 上下结构（stage 徽标 + 主体卡片），比默认横向更醒目 */
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+  padding: 20rpx 0;
+  border-bottom: 2rpx solid var(--border);
+}
+
+.preview-box .pv-stage {
+  align-self: flex-start;
+  font-size: 24rpx;
+  font-weight: 700;
+  padding: 6rpx 16rpx;
+  background: var(--soft);
+  border-radius: 8rpx;
+  color: var(--brand);
+}
+
+.preview-box .pv-main {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.preview-box .pv-front {
+  font-size: 30rpx;       /* 原 24rpx → 30rpx，更易读 */
+  font-weight: 600;
+  line-height: 1.7;
+  color: var(--text);
+  word-break: break-word;
+}
+
+.preview-box .pv-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+  font-size: 24rpx;
+}
+
+.preview-box .pv-tag {
+  color: var(--muted);
+  flex: 1;
+  line-height: 1.6;
+}
+
+.preview-box .pv-ans {
+  font-weight: 800;
+  flex-shrink: 0;
+  padding: 4rpx 14rpx;
+  border-radius: 8rpx;
+}
+
+.preview-box .pv-ans.ok {
+  background: rgba(5, 150, 105, 0.1);
+  color: var(--ok);
+}
+
+.preview-box .pv-ans.warn {
+  background: rgba(185, 28, 28, 0.1);
+  color: var(--bad);
+}
+
+/* ============ 底部固定操作栏：确认导入 ============ */
+.action-bar-fixed {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  gap: 16rpx;
+  padding: 20rpx 24rpx calc(20rpx + env(safe-area-inset-bottom));
+  background: var(--card);
+  border-top: 2rpx solid var(--border);
+  box-shadow: 0 -6rpx 20rpx rgba(5, 28, 44, 0.08);
+  z-index: 50;
+}
+
+.action-bar-fixed .action-btn {
+  flex: 1;
+  font-size: 30rpx;
+  font-weight: 800;
+  padding: 24rpx;
+  border-radius: 20rpx;
+  margin: 0;
+}
+
+/* 弱化态：仅**视觉**提示「当前还不能导入」，但按钮仍可点 ——
+   点击时会给出原因提示。不用 <button disabled>，因为它会吞掉 tap、变成「点了没反应」。 */
+.action-bar-fixed .action-btn.is-disabled {
+  opacity: 0.5;
+}
+
+/* txt tab 启用固定底栏时，让 page 容器变为 flex column（让内部 block 可以 flex:1 撑开） */
+.page.has-fixed-action {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 160rpx;
+}
+
+/* ============ txt tab：flex 容器，让预览框自适应撑到固定底栏之上 ============ */
+.txt-flex {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+/* 让预览框吃掉所有剩余高度（延伸到 fixed 按钮栏之上） */
+.preview-box-fill {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.preview-box-fill .preview-list {
+  flex: 1;
+  min-height: 320rpx;
+  overflow-y: auto;
+  /* iOS 惯性滚动 */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ============ txt tab 加大主操作区（textarea + 解析摘要）=========== */
+/* 整体容器：让 panel 自身吃掉所有剩余高度（替代此前的"第二个预览占位框"） */
+.txt-flex .panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* textarea 是主预览区：填满剩余高度，跨行粘贴时可滚动 */
+.txt-flex textarea.main-area {
+  flex: 1;
+  width: 100%;
+  min-height: 320rpx;
+  background: var(--soft);
+  border: 2rpx solid var(--border);
+  border-radius: 16rpx;
+  padding: 20rpx;
+  font-size: 26rpx;
+  line-height: 1.7;
+  box-sizing: border-box;
+  color: var(--text);
+}
+
+/* 解析摘要条：贴在 panel 底部一行 */
+.txt-flex .parse-summary {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-top: 16rpx;
+  padding: 16rpx;
+  background: var(--soft);
+  border-radius: 12rpx;
+}
+
+.txt-flex .parse-summary .ps-icon {
+  font-size: 32rpx;
+}

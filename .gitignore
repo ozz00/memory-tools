@@ -1,0 +1,22 @@
+# 依赖
+node_modules/
+.npm-cache/
+
+# 构建产物
+build/
+dist/
+coverage/
+
+# 环境变量（保留示例文件）
+.env*
+!.env.example
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# AI 编程助手工作目录（本地笔记 / 截图 / 会话记忆）
+.workbuddy/
+
+# 日志
+*.log
